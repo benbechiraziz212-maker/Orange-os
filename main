@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>orange.Os — Enterprise Unix Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --black: #080809;
+    --carbon: #111114;
+    --surface: #16161B;
+    --border: #252530;
+    --orange: #E8510A;
+    --amber: #F5A623;
+    --glow: rgba(232, 81, 10, 0.18);
+    --text: #E0DBD0;
+    --muted: #7A7670;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    background: rgba(8,8,9,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-dot {
+    width: 10px; height: 10px;
+    background: var(--orange);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--orange), 0 0 24px rgba(232,81,10,0.5);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--orange); }
+
+  .nav-cta {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border: 1px solid var(--orange);
+    color: var(--orange);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-cta:hover { background: var(--orange); color: #fff; }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 80px 80px;
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,81,10,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,81,10,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 30%, transparent 100%);
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 600px;
+    background: radial-gradient(ellipse, rgba(232,81,10,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 32px; height: 1px;
+    background: var(--orange);
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(3.5rem, 8vw, 7.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .hero-title .orange { color: var(--orange); }
+
+  .hero-title .os-suffix {
+    font-size: 0.55em;
+    color: var(--amber);
+    font-weight: 400;
+    vertical-align: super;
+  }
+
+  .hero-sub {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 400;
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    color: var(--muted);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+
+  .hero-desc {
+    max-width: 560px;
+    font-size: 1.05rem;
+    color: #9A9590;
+    line-height: 1.75;
+    margin-bottom: 56px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .btn-primary {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover { background: #FF6220; box-shadow: 0 0 30px rgba(232,81,10,0.4); }
+
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* ─── UPTIME COUNTER (Signature Element) ─── */
+  .uptime-block {
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 1px solid var(--border);
+    background: rgba(22,22,27,0.8);
+    backdrop-filter: blur(12px);
+    padding: 32px 40px;
+    min-width: 320px;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+
+  .uptime-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .uptime-label::before {
+    content: '▶';
+    font-size: 0.5rem;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  .uptime-counter {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    text-shadow: 0 0 20px rgba(245,166,35,0.3);
+  }
+
+  .uptime-unit {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-top: 4px;
+  }
+
+  .uptime-metrics {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+
+  .metric { }
+  .metric-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .metric-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ─── STATS BAR ─── */
+  .stats-bar {
+    background: var(--carbon);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--orange);
+  }
+
+  .stat-desc {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+  }
+
+  /* ─── SECTION BASE ─── */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 100px 80px;
+  }
+
+  .section-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 80px;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+
+  .section-lead {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 600px;
+    line-height: 1.8;
+    margin-bottom: 64px;
+  }
+
+  /* ─── THREE PILLARS ─── */
+  .pillars {
+    background: var(--carbon);
+  }
+
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+  }
+
+  .pillar-card {
+    background: var(--surface);
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+
+  .pillar-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--orange), transparent);
+    transform: scaleX(0);
+    transition: transform 0.4s;
+  }
+
+  .pillar-card:hover::before { transform: scaleX(1); }
+  .pillar-card:hover { background: #1C1C22; }
+
+  .pillar-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgba(232,81,10,0.08);
+    line-height: 1;
+    position: absolute;
+    top: 24px; right: 32px;
+  }
+
+  .pillar-icon {
+    width: 48px; height: 48px;
+    border: 1px solid rgba(232,81,10,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    font-size: 1.3rem;
+    background: rgba(232,81,10,0.05);
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+
+  .pillar-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .pillar-tag {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--orange);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .pillar-body {
+    font-size: 0.9rem;
+    color: #807A74;
+    line-height: 1.8;
+  }
+
+  /* ─── FEATURES ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .feature-item {
+    display: flex;
+    gap: 24px;
+    padding: 32px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+  .feature-item:hover { border-color: rgba(232,81,10,0.3); }
+
+  .feature-icon-wrap {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(232,81,10,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+  }
+
+  .feature-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .feature-body {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  /* ─── ARCHITECTURE TERMINAL ─── */
+  .arch-section { background: var(--black); }
+
+  .terminal {
+    background: #0D0D10;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    font-family: var(--mono);
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .terminal-bar {
+    background: var(--carbon);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .terminal-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .t-red { background: #E05252; }
+  .t-yellow { background: #E0B452; }
+  .t-green { background: #52C97A; }
+
+  .terminal-title {
+    flex: 1;
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .terminal-body {
+    padding: 32px;
+    font-size: 0.8rem;
+    line-height: 2;
+  }
+
+  .t-prompt { color: var(--orange); }
+  .t-cmd { color: var(--text); }
+  .t-output { color: #5A8A6A; }
+  .t-comment { color: #4A4A58; }
+  .t-highlight { color: var(--amber); }
+  .t-error { color: #C04040; }
+  .t-info { color: #4A7A9A; }
+
+  /* ─── CROSSBOW / NETWORK ─── */
+  .network-section {
+    background: var(--carbon);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .network-bg {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 70% 50%, rgba(232,81,10,0.06) 0%, transparent 60%);
+  }
+
+  .network-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .network-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .net-card {
+    border: 1px solid var(--border);
+    background: var(--black);
+    padding: 24px 28px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: border-color 0.3s;
+  }
+
+  .net-card:hover { border-color: rgba(232,81,10,0.35); }
+
+  .net-indicator {
+    width: 6px;
+    background: var(--orange);
+    flex-shrink: 0;
+    align-self: stretch;
+    min-height: 40px;
+    box-shadow: 0 0 8px var(--orange);
+  }
+
+  .net-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .net-body {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ─── ZONES VISUAL ─── */
+  .zones-visual {
+    position: relative;
+    padding: 40px;
+    border: 1px solid var(--border);
+    background: var(--black);
+  }
+
+  .zones-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--orange);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .zones-server {
+    border: 1px solid rgba(232,81,10,0.3);
+    padding: 20px;
+    position: relative;
+    background: rgba(232,81,10,0.03);
+  }
+
+  .server-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .zones-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .zone-box {
+    background: rgba(232,81,10,0.08);
+    border: 1px solid rgba(232,81,10,0.2);
+    padding: 8px 6px;
+    text-align: center;
+  }
+
+  .zone-box .zone-id {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--orange);
+    letter-spacing: 0.1em;
+  }
+
+  .zone-box .zone-status {
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    color: #52C97A;
+    margin-top: 2px;
+  }
+
+  .zone-more {
+    background: rgba(245,166,35,0.05);
+    border: 1px dashed rgba(245,166,35,0.2);
+    padding: 8px 6px;
+    text-align: center;
+  }
+
+  .zone-more span {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--amber);
+  }
+
+  /* ─── RELIABILITY ─── */
+  .reliability-section {
+    background: var(--black);
+  }
+
+  .reliability-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .reliability-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .rel-card {
+    padding: 28px 32px;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .rel-card:last-child { border-bottom: 1px solid var(--border); }
+  .rel-card:hover { background: var(--surface); }
+
+  .rel-card::before {
+    content: attr(data-step);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    color: var(--orange);
+    letter-spacing: 0.15em;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .rel-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .rel-body {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* UPTIME VISUAL */
+  .uptime-visual {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .uptime-bar-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .ub-name {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .ub-pct {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    color: var(--orange);
+  }
+
+  .uptime-bar-track {
+    height: 6px;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .uptime-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), var(--amber));
+    box-shadow: 0 0 8px rgba(232,81,10,0.5);
+  }
+
+  .uptime-years {
+    margin-top: 20px;
+    padding: 28px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+  }
+
+  .uy-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--orange);
+    text-shadow: 0 0 30px rgba(232,81,10,0.3);
+    line-height: 1;
+  }
+
+  .uy-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--carbon);
+    border-top: 1px solid var(--border);
+    padding: 64px 80px 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+  }
+
+  .footer-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--orange);
+    margin-bottom: 16px;
+    letter-spacing: 0.06em;
+  }
+
+  .footer-tagline {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 260px;
+  }
+
+  .footer-heading {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 20px;
+  }
+
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .footer-links a {
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--text); }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-copy {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .footer-build {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .footer-build span { color: var(--orange); }
+
+  /* ─── SCROLL ANIMATIONS ─── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1100px) {
+    nav { padding: 0 24px; }
+    .hero { padding: 100px 32px 200px; }
+    .uptime-block { position: relative; right: auto; top: auto; transform: none; margin-top: 48px; min-width: auto; }
+    .hero { flex-direction: column; }
+    section { padding: 64px 32px; }
+    .stats-bar { padding: 20px 32px; flex-wrap: wrap; gap: 20px; }
+    .pillars-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; gap: 16px; }
+    .network-layout { grid-template-columns: 1fr; gap: 40px; }
+    .reliability-layout { grid-template-columns: 1fr; gap: 40px; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    footer { padding: 48px 32px 32px; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="logo-dot"></div>
+    orange.Os
+  </div>
+  <ul class="nav-links">
+    <li><a href="#pillars">Architecture</a></li>
+    <li><a href="#network">Network</a></li>
+    <li><a href="#zones">Zones</a></li>
+    <li><a href="#reliability">Reliability</a></li>
+  </ul>
+  <button class="nav-cta">Request Access</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-eyebrow">Enterprise Unix Platform — v4.2.0</div>
+
+  <h1 class="hero-title">
+    <span class="orange">orange</span><span class="os-suffix">.Os</span>
+  </h1>
+  <p class="hero-sub">Built for enterprises that cannot afford failure</p>
+
+  <p class="hero-desc">
+    A closed-source, Unix-based operating system engineered for the most demanding enterprise environments — banking cores, telecommunications grids, and mission-critical databases requiring continuous operation without interruption.
+  </p>
+
+  <div class="hero-actions">
+    <button class="btn-primary">Request a Demo</button>
+    <button class="btn-ghost">Read Architecture Docs</button>
+  </div>
+
+  <!-- SIGNATURE: Live uptime counter -->
+  <div class="uptime-block reveal">
+    <div class="uptime-label">System Uptime Monitor</div>
+    <div class="uptime-counter" id="uptimeCounter">847:14:22:09</div>
+    <div class="uptime-unit">Days · Hours · Minutes · Seconds</div>
+    <div class="uptime-metrics">
+      <div class="metric">
+        <div class="metric-val">99.9999%</div>
+        <div class="metric-label">Availability SLA</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val">0</div>
+        <div class="metric-label">Kernel Panics</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val">847</div>
+        <div class="metric-label">Days Online</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val">Live</div>
+        <div class="metric-label">Status</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num">256</div>
+    <div class="stat-desc">Max Zones / Server</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">10Gb/s</div>
+    <div class="stat-desc">Virtual NIC Throughput</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">ZFS</div>
+    <div class="stat-desc">Self-Healing Filesystem</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">0</div>
+    <div class="stat-desc">Planned Downtime Required</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">HW</div>
+    <div class="stat-desc">Accelerated IPsec / TLS</div>
+  </div>
+</div>
+
+<!-- THREE PILLARS -->
+<section class="pillars" id="pillars">
+  <div class="section-eyebrow">Core Architecture</div>
+  <h2 class="section-title">Three Technological Pillars</h2>
+  <p class="section-lead">The foundational technologies that make orange.Os the operating system of choice for institutions where failure is not an option.</p>
+
+  <div class="pillars-grid reveal">
+    <div class="pillar-card">
+      <div class="pillar-num">I</div>
+      <div class="pillar-icon">⬡</div>
+      <div class="pillar-name">ZFS File System</div>
+      <div class="pillar-tag">Data Integrity Layer</div>
+      <p class="pillar-body">
+        The world's most robust data management subsystem. ZFS operates with end-to-end checksums on every block, detecting and repairing silent data corruption before it reaches your application. RAID-Z, snapshotting, and native compression are built-in, not bolted on. Your data heals itself.
+      </p>
+    </div>
+
+    <div class="pillar-card">
+      <div class="pillar-num">II</div>
+      <div class="pillar-icon">◈</div>
+      <div class="pillar-name">DTrace</div>
+      <div class="pillar-tag">Dynamic Instrumentation</div>
+      <p class="pillar-body">
+        Observe and diagnose any kernel or userspace behavior in real-time on a live production server with negligible overhead. No reboots, no debugging builds. DTrace gives engineers atomic-level visibility into system calls, memory, I/O, and network — while the server continues serving traffic.
+      </p>
+    </div>
+
+    <div class="pillar-card">
+      <div class="pillar-num">III</div>
+      <div class="pillar-icon">◫</div>
+      <div class="pillar-name">Solaris Zones</div>
+      <div class="pillar-tag">OS-level Virtualization</div>
+      <p class="pillar-body">
+        Partition one physical server into hundreds of fully isolated, secure environments — each with its own network stack, filesystem, and process namespace. The conceptual ancestor of Docker and Linux containers, Zones predate container technology by a decade and remain the gold standard for density and isolation.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES: SMF & DNS -->
+<section id="network">
+  <div class="section-eyebrow">Service Management</div>
+  <h2 class="section-title">Network Security &amp; SMF</h2>
+  <p class="section-lead">In orange.Os, DNS is not a text file. It is a protected system service — monitored, guarded, and immutable to network-level attackers.</p>
+
+  <div class="features-grid">
+    <div class="feature-item reveal">
+      <div class="feature-icon-wrap">⟳</div>
+      <div>
+        <div class="feature-title">Smart Service Management (SMF)</div>
+        <p class="feature-body">Every system service — DNS, NTP, routing — runs under the SMF supervisor. If a service crashes, SMF detects the failure and restarts it automatically within milliseconds. Dependency ordering ensures services come back up in the correct sequence without human intervention.</p>
+      </div>
+    </div>
+
+    <div class="feature-item reveal">
+      <div class="feature-icon-wrap">🔒</div>
+      <div>
+        <div class="feature-title">Anti-Hijack DNS Protection</div>
+        <p class="feature-body">DNS configuration lives in the SMF service repository — a structured, access-controlled database. Local network software, DHCP responses, or attackers cannot overwrite your resolver settings by modifying a flat text file. Your external DNS definitions are enforced at the OS level.</p>
+      </div>
+    </div>
+
+    <div class="feature-item reveal">
+      <div class="feature-icon-wrap">⊕</div>
+      <div>
+        <div class="feature-title">Independent DNS Architecture</div>
+        <p class="feature-body">Where Linux uses <code style="font-family:var(--mono);color:var(--amber);font-size:0.8em">/etc/resolv.conf</code> — a simple text file any process can overwrite — orange.Os treats DNS as a first-class managed service. Configuring an independent external resolver like a private 192.x server persists across reboots and network changes.</p>
+      </div>
+    </div>
+
+    <div class="feature-item reveal">
+      <div class="feature-icon-wrap">⛊</div>
+      <div>
+        <div class="feature-title">Role-Based Access Administration</div>
+        <p class="feature-body">The RBAC system provides fine-grained privilege delegation. Administrators receive exactly the permissions their role requires — no more. Root access is audited, accountable, and traceable down to individual commands and timestamps stored in tamper-evident logs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE TERMINAL -->
+<section class="arch-section">
+  <div class="section-eyebrow">Live Diagnostics</div>
+  <h2 class="section-title" style="text-align:center;margin-bottom:48px;">DTrace in Production</h2>
+
+  <div class="terminal reveal">
+    <div class="terminal-bar">
+      <div class="terminal-dot t-red"></div>
+      <div class="terminal-dot t-yellow"></div>
+      <div class="terminal-dot t-green"></div>
+      <div class="terminal-title">orange.Os — DTrace Kernel Probe · root@orange-core-01</div>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-comment"># Trace all syscall latencies > 10ms on the production database zone</span></div>
+      <div><span class="t-prompt">root@orange-core-01:~# </span><span class="t-cmd">dtrace -n 'syscall:::entry /zonename == "db-zone-04"/ { self->ts = timestamp; } syscall:::return /self->ts/ { @lat[probefunc] = quantize(timestamp - self->ts); self->ts = 0; }'</span></div>
+      <div>&nbsp;</div>
+      <div><span class="t-output">dtrace: description matched 1176 probes</span></div>
+      <div><span class="t-output">CPU     ID                    FUNCTION:NAME</span></div>
+      <div>&nbsp;</div>
+      <div><span class="t-highlight">  read                                          </span></div>
+      <div><span class="t-output">           value  ------------- Distribution ------------- count    </span></div>
+      <div><span class="t-output">            8192 |                                         0       </span></div>
+      <div><span class="t-output">           16384 |@@@@@@@@@@@@@@@@@@@@@@@                  12847   </span></div>
+      <div><span class="t-output">           32768 |@@@@@@@@@@@@                             6234    </span></div>
+      <div><span class="t-output">           65536 |@@                                       891     </span></div>
+      <div><span class="t-output">          131072 |                                         12      </span></div>
+      <div>&nbsp;</div>
+      <div><span class="t-info">→ Hotspot identified: NFS lock contention in db-zone-04 at 65μs median</span></div>
+      <div><span class="t-info">→ Server load: 0.4% overhead from trace. Production traffic: unaffected.</span></div>
+      <div><span class="t-info">→ ZFS self-heal event: 1 corrected checksum at zpool/data/vol3 [auto-repaired]</span></div>
+      <div>&nbsp;</div>
+      <div><span class="t-prompt">root@orange-core-01:~# </span><span class="t-cmd">svcs -x dns/client</span></div>
+      <div><span class="t-output">svc:/network/dns/client:default (DNS Name Service)</span></div>
+      <div><span class="t-output"> State: online since Fri Jun 12 04:17:33 2026</span></div>
+      <div><span class="t-output"> Reason: Service is running.</span></div>
+      <div><span class="t-output"> Resolver: 192.1.168.53 [SMF-locked · tamper-proof]</span></div>
+      <div><span class="t-output"> Restarts (30d): 0</span></div>
+      <div>&nbsp;</div>
+      <div><span class="t-prompt">root@orange-core-01:~# <span class="t-cmd" style="animation: blink 1s step-end infinite">▌</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CROSSBOW / ZONES -->
+<section class="network-section" id="zones">
+  <div class="network-bg"></div>
+  <div class="section-eyebrow">Crossbow Architecture</div>
+  <h2 class="section-title">Virtual Networking &amp; Zones</h2>
+  <p class="section-lead">One cable. One server. Hundreds of isolated, bandwidth-controlled environments — each with its own encrypted network stack.</p>
+
+  <div class="network-layout">
+    <div class="network-cards">
+      <div class="net-card reveal">
+        <div class="net-indicator"></div>
+        <div>
+          <div class="net-title">Absolute Bandwidth Control</div>
+          <p class="net-body">Set hard bandwidth ceilings per container, per application, or per virtual NIC. A runaway process or DDoS attempt against one zone is capped at its allocation — the rest of your infrastructure continues at full speed. Hardware enforcement, not software throttling.</p>
+        </div>
+      </div>
+
+      <div class="net-card reveal">
+        <div class="net-indicator"></div>
+        <div>
+          <div class="net-title">Virtual Network Fabric — Zero Hardware</div>
+          <p class="net-body">Create hundreds of virtual switches, routers, and NICs without purchasing a single additional piece of hardware. Full layer-2 and layer-3 topologies within the same physical server. Crossbow virtualizes the entire network stack inside the OS kernel.</p>
+        </div>
+      </div>
+
+      <div class="net-card reveal">
+        <div class="net-indicator"></div>
+        <div>
+          <div class="net-title">Hardware-Accelerated IPsec &amp; TLS</div>
+          <p class="net-body">Encryption is offloaded to the processor's cryptographic units. IPsec and TLS encrypt all transit data at wire speed — your network throughput is not diminished by the computational cost of protection. Security does not come at the price of performance.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONES DIAGRAM -->
+    <div>
+      <div class="zones-visual reveal">
+        <div class="zones-label">▶ orange.Os Server — Zone Map</div>
+        <div class="zones-server">
+          <div class="server-label">Physical Host · 256 Zones Capacity</div>
+          <div class="zones-grid">
+            <div class="zone-box"><div class="zone-id">Z-001</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-002</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-003</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-004</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-005</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-006</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-007</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-008</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-009</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-010</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-011</div><div class="zone-status">● online</div></div>
+            <div class="zone-box"><div class="zone-id">Z-012</div><div class="zone-status">● online</div></div>
+            <div class="zone-more"><span>+244 more</span></div>
+            <div class="zone-more"><span>zones</span></div>
+            <div class="zone-more"><span>available</span></div>
+            <div class="zone-more"><span>→ 256</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+          <div style="padding:12px; border:1px solid rgba(82,201,122,0.25); background:rgba(82,201,122,0.05); text-align:center;">
+            <div style="font-family:var(--mono);font-size:0.55rem;color:#52C97A;letter-spacing:0.12em;">RUNNING</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:1rem;color:#52C97A;font-weight:700;margin-top:4px;">12</div>
+          </div>
+          <div style="padding:12px; border:1px solid rgba(232,81,10,0.25); background:rgba(232,81,10,0.05); text-align:center;">
+            <div style="font-family:var(--mono);font-size:0.55rem;color:var(--orange);letter-spacing:0.12em;">CAPACITY</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--orange);font-weight:700;margin-top:4px;">256</div>
+          </div>
+          <div style="padding:12px; border:1px solid rgba(245,166,35,0.25); background:rgba(245,166,35,0.05); text-align:center;">
+            <div style="font-family:var(--mono);font-size:0.55rem;color:var(--amber);letter-spacing:0.12em;">ISOLATED</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:1rem;color:var(--amber);font-weight:700;margin-top:4px;">100%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RELIABILITY -->
+<section class="reliability-section" id="reliability">
+  <div class="section-eyebrow">Long-Term Stability</div>
+  <h2 class="section-title">Years of Uninterrupted Operation</h2>
+  <p class="section-lead">orange.Os servers run for years — not months — without a scheduled restart. Banks and telecoms trust it because it has never broken that promise.</p>
+
+  <div class="reliability-layout">
+    <div class="reliability-cards reveal">
+      <div class="rel-card" data-step="SMF-01">
+        <div class="rel-title">Automatic Service Recovery</div>
+        <p class="rel-body">When a monitored service fails — DNS, NTP, network routing — SMF detects the failure, logs the event, and restarts the service automatically. Recovery happens in milliseconds, before human operators can even open a terminal.</p>
+      </div>
+
+      <div class="rel-card" data-step="ZFS-01">
+        <div class="rel-title">Silent Data Corruption Prevention</div>
+        <p class="rel-body">ZFS stores checksums for every block of data. On every read, checksums are verified. If a disk returns corrupt data — silent bit rot that would go undetected for months on other systems — ZFS identifies it and reconstructs the correct data from its redundant copy.</p>
+      </div>
+
+      <div class="rel-card" data-step="LIVE-01">
+        <div class="rel-title">Kernel Patches Without Reboot</div>
+        <p class="rel-body">Critical OS patches can be applied and activated using live kernel updating technology. Your server does not go down for maintenance windows. The kernel version advances, the server keeps running, your SLA remains unbroken.</p>
+      </div>
+
+      <div class="rel-card" data-step="AUDIT-01">
+        <div class="rel-title">Complete Audit Trail</div>
+        <p class="rel-body">Every privileged command, every service restart, every configuration change is logged with timestamps and user identity into tamper-evident audit records. Compliance requirements for banking and telecoms are met by default, not by bolted-on software.</p>
+      </div>
+    </div>
+
+    <div class="uptime-visual reveal">
+      <div>
+        <div class="uptime-bar-label">
+          <div class="ub-name">Service Availability</div>
+          <div class="ub-pct">99.9999%</div>
+        </div>
+        <div class="uptime-bar-track"><div class="uptime-bar-fill" style="width:99.9999%"></div></div>
+      </div>
+      <div>
+        <div class="uptime-bar-label">
+          <div class="ub-name">Data Integrity</div>
+          <div class="ub-pct">100.0000%</div>
+        </div>
+        <div class="uptime-bar-track"><div class="uptime-bar-fill" style="width:100%"></div></div>
+      </div>
+      <div>
+        <div class="uptime-bar-label">
+          <div class="ub-name">Zero-Day Response</div>
+          <div class="ub-pct">98.7%</div>
+        </div>
+        <div class="uptime-bar-track"><div class="uptime-bar-fill" style="width:98.7%"></div></div>
+      </div>
+      <div>
+        <div class="uptime-bar-label">
+          <div class="ub-name">Network Encryption</div>
+          <div class="ub-pct">100%</div>
+        </div>
+        <div class="uptime-bar-track"><div class="uptime-bar-fill" style="width:100%"></div></div>
+      </div>
+
+      <div class="uptime-years">
+        <div class="uy-num" id="liveYears">847</div>
+        <div class="uy-label">Consecutive Days Online — Current Deployment</div>
+      </div>
+
+      <div style="margin-top:16px; padding:20px; border:1px solid var(--border); background:var(--surface);">
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:12px;">Comparable Systems</div>
+        <div style="display:grid;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);">Linux (Standard)</span>
+            <span style="font-family:'Orbitron',sans-serif;font-size:0.72rem;color:#C04040;">~30–90 days</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);">Linux (Enterprise)</span>
+            <span style="font-family:'Orbitron',sans-serif;font-size:0.72rem;color:var(--amber);">~180 days</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);">orange.Os</span>
+            <span style="font-family:'Orbitron',sans-serif;font-size:0.72rem;color:#52C97A;">Years</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">orange.Os</div>
+      <p class="footer-tagline">Enterprise Unix Platform for institutions where continuous availability is not a feature — it is a requirement. Built on the foundational technologies of the world's most reliable operating systems.</p>
+    </div>
+    <div>
+      <div class="footer-heading">Platform</div>
+      <ul class="footer-links">
+        <li><a href="#">ZFS Storage</a></li>
+        <li><a href="#">DTrace Diagnostics</a></li>
+        <li><a href="#">Solaris Zones</a></li>
+        <li><a href="#">Crossbow Network</a></li>
+        <li><a href="#">SMF Services</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Enterprise</div>
+      <ul class="footer-links">
+        <li><a href="#">Banking Solutions</a></li>
+        <li><a href="#">Telecom Infrastructure</a></li>
+        <li><a href="#">Data Center</a></li>
+        <li><a href="#">Compliance</a></li>
+        <li><a href="#">Support</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Developers</div>
+      <ul class="footer-links">
+        <li><a href="#">Documentation</a></li>
+        <li><a href="#">API Reference</a></li>
+        <li><a href="#">DTrace Guide</a></li>
+        <li><a href="#">Zone Management</a></li>
+        <li><a href="#">Changelog</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 orange.Os — All rights reserved. Closed-source enterprise platform.</div>
+    <div class="footer-build">Build <span>v4.2.0-stable</span> · Kernel <span>5.11-orange</span> · ZFS <span>2.2.4</span></div>
+  </div>
+</footer>
+
+<script>
+  // ─── Live uptime counter ───
+  let baseDays = 847;
+  let baseHours = 14;
+  let baseMinutes = 22;
+  let baseSeconds = 9;
+  let totalSeconds = baseDays * 86400 + baseHours * 3600 + baseMinutes * 60 + baseSeconds;
+
+  function formatUptime(s) {
+    const days = Math.floor(s / 86400);
+    const hrs = Math.floor((s % 86400) / 3600);
+    const mins = Math.floor((s % 3600) / 60);
+    const secs = s % 60;
+    return `${String(days).padStart(3,'0')}:${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+
+  setInterval(() => {
+    totalSeconds++;
+    const el = document.getElementById('uptimeCounter');
+    if (el) el.textContent = formatUptime(totalSeconds);
+    const days = Math.floor(totalSeconds / 86400);
+    const yl = document.getElementById('liveYears');
+    if (yl) yl.textContent = days;
+  }, 1000);
+
+  // ─── Scroll reveal ───
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  reveals.forEach(el => observer.observe(el));
+
+  // ─── Nav scroll effect ───
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    if (window.scrollY > 60) nav.style.borderBottomColor = 'rgba(232,81,10,0.2)';
+    else nav.style.borderBottomColor = 'var(--border)';
+  });
+</script>
+</body>
+</html>
